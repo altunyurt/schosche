@@ -6,17 +6,13 @@ class ClassRoomForm(forms.ModelForm):
     class Meta:
         model = ClassRoom
 
-class CourseTypeForm(forms.ModelForm):
-    class Meta:
-        model = CourseType
-
 class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
 
-class LecturerForm(forms.ModelForm):
+class InstructorForm(forms.ModelForm):
     class Meta:
-        model = Lecturer
+        model = Instructor
 
 class ClassRoomTypeForm(forms.ModelForm):
     class Meta:

@@ -1,0 +1,16 @@
+{% extends 'base.jinja' %}
+
+{% block content %}
+
+    <form action="." method='POST' name="form">
+        {% csrf_token %}
+        <ul>
+            {{ form.as_ul()}}
+            <li>
+                <input type="submit" value="Kaydet" />
+            </li>
+            
+        </ul>
+    </form>
+
+{% endblock %}

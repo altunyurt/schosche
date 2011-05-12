@@ -2,6 +2,26 @@
 
 {% block content %}
 
+    <div id="grid" class="grid_20">
+        <div class="header grid_24">
+            <div class="grid_4">Ders</div>
+            <div class="grid_4">Eğitmen</div>
+            <div class="grid_4">Saat</div>
+            <div class="grid_4">Gün</div>
+            <div class="grid_4">Sınıf</div>
+        </div>
+        {% if sch %}
+            {% for course, val in sch.data.items() %}
+            <div class="grid_row grid_24">
+                <div class="grid_4">{{ course.name }}</div>
+                <div class="grid_4">{{ val[0] }}</div>
+                <div class="grid_4">{{ val[1] }}</div>
+                <div class="grid_4">{{ val[2] }}</div>
+                <div class="grid_4">{{ val[3] }}</div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
 
 
 {% endblock %}
