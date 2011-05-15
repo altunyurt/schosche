@@ -4,6 +4,7 @@ from utils import render_to_response
 from django.http import HttpResponse
 from main.forms import *
 from django.shortcuts import get_object_or_404
+from utils.constraints import *
 
 objects = {
     'course': Course,
@@ -38,6 +39,33 @@ def show_term(request):
     return render_to_response('show_term.jinja', locals())
 
 def runconstraints(request):
+    domains = {}
+    constraints = []
+
+    ''' her ders için zaten veri girişind uygulanan kısıtlara göre domain oluştur'''
+    courses = Course.objects.filter(is_active=True)
+    for course in courses:
+        values = [(int(instructor.id), int(room.id), int(day.id), hour)
+                    for instructor in course.instructors.filter(is_active=True)
+                        for room in course.rooms.filter(is_active=True)
+                            for day in course.days.all()
+                                for hour in range(9, 19-course.duration)]
+        domains[course] = fd.FiniteDomain(values)
+
+    for course1 in courses:
+        for course2 in courses:
+            if course1 != course2:
+                c = SameDaySameRoomConstraint((course1, course2))
+                constraints.append(c)
+
+    r = Repository(courses, domains, constraints)
+    s = Solver()
+    s.distrib_cnt = 0
+    s.max_depth = 0
+    s.verbose = 0
+    x = s._solve(r)
+    print x.next()
+
     return HttpResponse('OK')
 
 

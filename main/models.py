@@ -72,9 +72,9 @@ class ClassRoom(MyModel):
 
 
 class Course(MyModel):
-    name = models.CharField(max_length=255, null=False, blank=False)
-    code = models.CharField(max_length=15,  null=True, blank=True)
-    crn = models.CharField(max_length=15,  null=True, blank=True)
+    name = models.CharField(max_length=255, null=False, blank=False, unique=True)
+    code = models.CharField(max_length=15,  null=True, blank=True, unique=True)
+    crn = models.CharField(max_length=15,  null=True, blank=True, unique=True)
     duration = models.PositiveSmallIntegerField(blank=False)
     mandatory = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -93,7 +93,7 @@ class Course(MyModel):
 class Instructor(MyModel):
     ''' Hocalar ve tercih ettikleri ders tipleri '''
     name = models.CharField(max_length=255, blank=False, null=False)
-    preferred_courses = models.ManyToManyField('Course')
+    preferred_courses = models.ManyToManyField('Course', related_name="instructors")
     is_active = models.BooleanField(default=True)
 
     def __unicode__(self):

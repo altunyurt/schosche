@@ -17,4 +17,6 @@ urlpatterns = patterns('main.views',
     url('^edit/coursetype/(?P<objid>\d+)/$', 'editObject', {'objtype':'coursetype'}, name='editCourseType'),
     url('^edit/classroom/(?P<objid>\d+)/$', 'editObject', {'objtype':'classroom'}, name='editClassRoom'),
     url('^edit/classroomtype/(?P<objid>\d+)/$', 'editObject', {'objtype':'classroomtype'}, name='editClassRoomType'),
+
+    url('^runconstraints','runconstraints', name='runconstraints'),
 )
