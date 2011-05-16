@@ -1,0 +1,17 @@
+    <div id="left_col" class="left grid_2">
+        <h3>İçerik</h3>
+        <ul>
+            <li><a href="{{url_for('addCourse')}}">Ders ekle</a></li>
+            <li><a href="{{url_for('addInstructor')}}">Eğitmen ekle</a></li>
+            <li><a href="{{url_for('addClassRoom')}}">Sınıf ekle</a></li>
+            <li><a href="{{url_for('addClassRoomType')}}">Sınıf tipi ekle</a></li>
+        </ul>
+        <div class="eline"></div>
+
+        <div id="menu" class="">
+            <h3>Gösterim</h3>
+            <div {%if vtype == "course"%}class="active"{% endif %}><a href="?view=course">Derse göre</a></div>
+            <div {%if vtype == "instructor"%}class="active"{% endif %}><a href="?view=instructor">Eğitmene göre</a></div>
+            <div {%if vtype == "room"%}class="active"{% endif %}><a href="?view=room">Sınıfa göre</a></div>
+        </div>
+    </div>

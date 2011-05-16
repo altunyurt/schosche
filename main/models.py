@@ -71,6 +71,13 @@ class ClassRoom(MyModel):
         return u'%s' % self.name
 
 
+class CourseManager(models.Manager):
+    def actives(self):
+        qs = super(CourseManager, self).get_query_set()
+        return qs.filter(is_active=True)
+
+
+
 class Course(MyModel):
     name = models.CharField(max_length=255, null=False, blank=False, unique=True)
     code = models.CharField(max_length=15,  null=True, blank=True, unique=True)
@@ -78,13 +85,15 @@ class Course(MyModel):
     duration = models.PositiveSmallIntegerField(blank=False)
     mandatory = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    capacity = models.PositiveSmallIntegerField(null=False, blank=False)
     '''
         bu kısımda temel kısıtlar mevcut 
     ''' 
     days = models.ManyToManyField(Day, blank=True, null=True)
     terms = models.ManyToManyField(Term)
-    rooms = models.ManyToManyField('ClassRoom', blank=True, null=True)
+    classroomtypes = models.ManyToManyField(ClassRoomType, blank=True, null=True)
 
+    objects = CourseManager()
 
     def __unicode__(self):
         return u'%s' % self.name 

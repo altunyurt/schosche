@@ -18,7 +18,7 @@ urlpatterns = patterns('main.views',
     url('^edit/classroom/(?P<objid>\d+)/$', 'editObject', {'objtype':'classroom'}, name='editClassRoom'),
     url('^edit/classroomtype/(?P<objid>\d+)/$', 'editObject', {'objtype':'classroomtype'}, name='editClassRoomType'),
 
-    url('^runconstraints','runconstraints', name='runconstraints'),
+    url('^runconstraints/$','runconstraints', name='runconstraints'),
 
     url('^logout/$', 'logout', name="logout"),
     url('^login/$', 'login', name="login"),
