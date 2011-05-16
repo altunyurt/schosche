@@ -9,14 +9,18 @@
     </head>
 
     <body>
-        <div id="container" class="container_24">
-            <div id="top" class="grid_24">
-
+        <div id="container" class="container_12">
+            <div id="top">
+                <div id="logo"></div>
+                <div id="controls" class="right suffix_1">
+                    <a href="{{url_for('logout')}}">çıkış</a>
+                </div>
             </div>
-            <div class="eline"></div>
-            <div id="content" class="grid_24">
+        </div>
+        <div class="eline"></div>
+        <div id="content" class="container_12">
                 {% block content %} {% endblock %}
-            </div>
+        </div>
         </div>
     </body>
 </html>

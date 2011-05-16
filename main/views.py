@@ -5,6 +5,8 @@ from django.http import HttpResponse
 from main.forms import *
 from django.shortcuts import get_object_or_404
 from utils.constraints import *
+from django.contrib.auth import login as _login, logout as _logout, authenticate
+from main.decorators import * 
 
 objects = {
     'course': Course,
@@ -23,20 +25,14 @@ oforms = {
 
 def index(request):
     ''' burası tüm listenin görüneceği yer '''
+
+    vtype = request.GET.get('view', 'course')
+
     try:
         sch = Schedule.objects.get(is_default=True)
     except:
         sch = None
     return render_to_response('index.jinja', locals())
-
-def show_term(request):
-    term = request.GET('term', 1)
-    try:
-        sch = Schedule.objects.get(is_default=True)
-    except:
-        sch = None
-
-    return render_to_response('show_term.jinja', locals())
 
 def runconstraints(request):
     domains = {}
@@ -96,3 +92,9 @@ def editObject(request, objtype, objid):
     return render_to_response('form.jinja', locals())
 
 
+def login(request):
+    return render_to_response('login.jinja', locals())
+
+def logout(request):
+    # çıkışta direk anasayfaya atıyoruz
+    return render_to_response('login.jinja', locals())
