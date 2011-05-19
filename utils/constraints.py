@@ -1,5 +1,9 @@
 # coding:utf-8
 
+from __future__ import with_statement
+import os 
+os.environ.update({'NO_PSYCO': ""})
+
 from logilab.constraint import *
 from logilab.constraint.propagation import AbstractConstraint, ConsistencyFailure
 import os
@@ -13,17 +17,21 @@ import os
 
 '''
 
+profile.enable()
 
 class SameDaySameRoomConstraint(AbstractConstraint):
     def __init__(self, courses):
         AbstractConstraint.__init__(self, courses)
 
+    @profile 
     def narrow(self, domains):
-        course1 = self._variables[0]
-        dom1 = domains[course1]
+        _course1 = self._variables[0]
+        course1 = dict(_course1)
+        dom1 = domains[_course1]
         values1 = dom1.getValues()
-        course2 = self._variables[1]
-        dom2 = domains[course2]
+        _course2 = self._variables[1]
+        course2 = dict(_course2)
+        dom2 = domains[_course2]
         values2 = dom2.getValues()
            
         keep1 = {}
@@ -31,33 +39,29 @@ class SameDaySameRoomConstraint(AbstractConstraint):
         maybe_entailed = 1
         for val1 in values1:
             instructor1, room1, day1, hour1 = val1
-            start1, end1 = hour1, hour1 + course1.duration
+            start1, end1 = hour1, hour1 + course1["duration"]
 
             for val2 in values2:
                 
-                if val1 in keep1 and val2 in keep2 and maybe_entailed == 0:
-                    continue
-
                 instructor2, room2, day2, hour2 = val2
-                start2, end2 = hour2, hour2 + course2.duration
 
-                if room1 == room2 and day1 == day2 and \
-                     set(range(start1, end1)).intersection(set(range(start2, end2))):
-                        maybe_entailed = 0
+                if room1 != room2 or day1 != day2:
+                    keep1[val1] = keep2[val2] = 1
 
-                else:
-                    keep1[val1] = 1
-                    keep2[val2] = 1
+                elif not (val1 in keep1 and val2 in keep2 and maybe_entailed == 0):
+
+                    start2, end2 = hour2, hour2 + course2["duration"]
+
+                    if set(range(start1, end1)).intersection(set(range(start2, end2))):
+                            maybe_entailed = 0
+
+                    else:
+                        keep1[val1] = 1
+                        keep2[val2] = 1
 
         try:
-            dom1.removeValues([val for val in values1 if val not in keep1])
-            dom2.removeValues([val for val in values2 if val not in keep2])            
-            fin1 = dom1.getValues()
-            fin2 = dom2.getValues()
-            if len(fin1) != len(values1):
-                print self, 'değişiklik var', len(values1), len(fin1)
-            if len(fin2) != len(values2):
-                print self, 'değişiklik var', len(values2), len(fin2)
+            dom1.removeValues(set(values1).difference(keep1.keys()))
+            dom2.removeValues(set(values2).difference(keep2.keys()))
         except ConsistencyFailure:
             raise ConsistencyFailure('Inconsistency while applying %s' % \
                                      repr(self))
@@ -78,12 +82,15 @@ class MandatoryCourseClashConstraint(AbstractConstraint):
     def __init__(self, courses):
         AbstractConstraint.__init__(self, courses)
 
+    @profile 
     def narrow(self, domains):
-        course1 = self._variables[0]
-        dom1 = domains[course1]
+        _course1 = self._variables[0]
+        course1 = dict(_course1)
+        dom1 = domains[_course1]
         values1 = dom1.getValues()
-        course2 = self._variables[1]
-        dom2 = domains[course2]
+        _course2 = self._variables[1]
+        course2 = dict(_course2)
+        dom2 = domains[_course2]
         values2 = dom2.getValues()
            
         keep1 = {}
@@ -92,34 +99,30 @@ class MandatoryCourseClashConstraint(AbstractConstraint):
     
         for val1 in values1:
             instructor1, room1, day1, hour1 = val1
-            start1, end1 = hour1, hour1 + course1.duration
+            start1, end1 = hour1, hour1 + course1["duration"]
 
             for val2 in values2:
-                
-                if val1 in keep1 and val2 in keep2 and maybe_entailed == 0:
-                    continue
+                print 'penis'
 
                 instructor2, room2, day2, hour2 = val2
-                start2, end2 = hour2, hour2 + course2.duration
+                if day1 != day2:
+                    keep1[val1] = keep2[val2] = 1
+                
+                elif not ( val1 in keep1 and val2 in keep2 and maybe_entailed == 0):
 
-                ''' saatler ve günler çakışmamalı'''
-                if day1 == day2 and \
-                     set(range(start1, end1)).intersection(set(range(start2, end2))):
-                        maybe_entailed = 0
+                    start2, end2 = hour2, hour2 + course2["duration"]
 
-                else:
-                    keep1[val1] = 1
-                    keep2[val2] = 1
+                    ''' saatler ve günler çakışmamalı'''
+                    if set(range(start1, end1)).intersection(set(range(start2, end2))):
+                            maybe_entailed = 0
+
+                    else:
+                        keep1[val1] = 1
+                        keep2[val2] = 1
 
         try:
-            dom1.removeValues([val for val in values1 if val not in keep1])
-            dom2.removeValues([val for val in values2 if val not in keep2])            
-            fin1 = dom1.getValues()
-            fin2 = dom2.getValues()
-            if len(fin1) != len(values1):
-                print self, 'değişiklik var', len(values1), len(fin1)
-            if len(fin2) != len(values2):
-                print self, 'değişiklik var', len(values2), len(fin2)
+            dom1.removeValues(set(values1).difference(keep1.keys()))
+            dom2.removeValues(set(values2).difference(keep2.keys()))
         except ConsistencyFailure:
             raise ConsistencyFailure('Inconsistency while applying %s' % \
                                      repr(self))
@@ -131,15 +134,19 @@ class MandatoryCourseClashConstraint(AbstractConstraint):
 
 
 class TermConflictConstraint(AbstractConstraint):
+    ''' aynı dönemler içinde aynı gün ve saatte ders olamaz '''
     def __init__(self, courses):
         AbstractConstraint.__init__(self, courses)
     
+    @profile  
     def narrow(self, domains):
-        course1 = self._variables[0]
-        dom1 = domains[course1]
+        _course1 = self._variables[0]
+        course1 = dict(_course1)
+        dom1 = domains[_course1]
         values1 = dom1.getValues()
-        course2 = self._variables[1]
-        dom2 = domains[course2]
+        _course2 = self._variables[1]
+        course2 = dict(_course2)
+        dom2 = domains[_course2]
         values2 = dom2.getValues()
            
         keep1 = {}
@@ -148,33 +155,28 @@ class TermConflictConstraint(AbstractConstraint):
   
         for val1 in values1:
             instructor1, room1, day1, hour1 = val1
-            start1, end1 = hour1, hour1 + course1.duration
+            start1, end1 = hour1, hour1 + course1["duration"]
 
             for val2 in values2:
                 
-                if val1 in keep1 and val2 in keep2 and maybe_entailed == 0:
-                    continue
-
                 instructor2, room2, day2, hour2 = val2
-                start2, end2 = hour2, hour2 + course2.duration
 
-                if day1 == day2 and \
-                     set(range(start1, end1)).intersection(set(range(start2, end2))):
-                        maybe_entailed = 0
+                if day1 != day2:
+                    keep1[val1] = keep2[val2] = 1
 
-                else:
-                    keep1[val1] = 1
-                    keep2[val2] = 1
+                elif not (val1 in keep1 and val2 in keep2 and maybe_entailed == 0):
+
+                    start2, end2 = hour2, hour2 + course2["duration"]
+
+                    if set(range(start1, end1)).intersection(set(range(start2, end2))):
+                            maybe_entailed = 0
+
+                    else:
+                        keep1[val1] = keep2[val2] = 1
 
         try:
-            dom1.removeValues([val for val in values1 if val not in keep1])
-            dom2.removeValues([val for val in values2 if val not in keep2])            
-            fin1 = dom1.getValues()
-            fin2 = dom2.getValues()
-            if len(fin1) != len(values1):
-                print self, 'değişiklik var', len(values1), len(fin1)
-            if len(fin2) != len(values2):
-                print self, 'değişiklik var', len(values2), len(fin2)
+            dom1.removeValues(set(values1).difference(keep1.keys()))
+            dom2.removeValues(set(values2).difference(keep2.keys()))
 
         except ConsistencyFailure:
             raise ConsistencyFailure('Inconsistency while applying %s' % \
@@ -190,12 +192,15 @@ class NoInstructorClashConstraint(AbstractConstraint):
     def __init__(self, courses):
         AbstractConstraint.__init__(self, courses)
 
+    @profile
     def narrow(self, domains):
-        course1 = self._variables[0]
-        dom1 = domains[course1]
+        _course1 = self._variables[0]
+        course1 = dict(_course1)
+        dom1 = domains[_course1]
         values1 = dom1.getValues()
-        course2 = self._variables[1]
-        dom2 = domains[course2]
+        _course2 = self._variables[1]
+        course2 = dict(_course2)
+        dom2 = domains[_course2]
         values2 = dom2.getValues()
            
         keep1 = {}
@@ -204,33 +209,27 @@ class NoInstructorClashConstraint(AbstractConstraint):
   
         for val1 in values1:
             instructor1, room1, day1, hour1 = val1
-            start1, end1 = hour1, hour1 + course1.duration
+            start1, end1 = hour1, hour1 + course1["duration"]
 
             for val2 in values2:
-                
-                if val1 in keep1 and val2 in keep2 and maybe_entailed == 0:
-                    continue
 
                 instructor2, room2, day2, hour2 = val2
-                start2, end2 = hour2, hour2 + course2.duration
+                if instructor1 != instructor2 or day1 != day2:
+                    keep1[val1] = keep2[val2] = 1
+                
+                elif not (val1 in keep1 and val2 in keep2 and maybe_entailed == 0):
 
-                if instructor1 == instructor2 and day1 == day2 and \
-                     set(range(start1, end1)).intersection(set(range(start2, end2))):
-                        maybe_entailed = 0
+                    start2, end2 = hour2, hour2 + course2["duration"]
 
-                else:
-                    keep1[val1] = 1
-                    keep2[val2] = 1
+                    if set(range(start1, end1)).intersection(set(range(start2, end2))):
+                            maybe_entailed = 0
+
+                    else:
+                        keep1[val1] = keep2[val2] = 1
 
         try:
-            dom1.removeValues([val for val in values1 if val not in keep1])
-            dom2.removeValues([val for val in values2 if val not in keep2])            
-            fin1 = dom1.getValues()
-            fin2 = dom2.getValues()
-            if len(fin1) != len(values1):
-                print self, 'değişiklik var', len(values1), len(fin1)
-            if len(fin2) != len(values2):
-                print self, 'değişiklik var', len(values2), len(fin2)
+            dom1.removeValues(set(values1).difference(keep1.keys()))
+            dom2.removeValues(set(values2).difference(keep2.keys()))
 
         except ConsistencyFailure:
             raise ConsistencyFailure('Inconsistency while applying %s' % \

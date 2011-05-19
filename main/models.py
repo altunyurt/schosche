@@ -71,10 +71,14 @@ class ClassRoom(MyModel):
         return u'%s' % self.name
 
 
-class CourseManager(models.Manager):
-    def actives(self):
-        qs = super(CourseManager, self).get_query_set()
-        return qs.filter(is_active=True)
+class QuerySetManager(models.Manager):
+    def get_query_set(self):
+        return self.model.QuerySet(self.model)
+    def __getattr__(self, attr, *args):
+        return getattr(self.get_query_set(), attr, *args)
+
+
+    
 
 
 
@@ -93,7 +97,26 @@ class Course(MyModel):
     terms = models.ManyToManyField(Term)
     classroomtypes = models.ManyToManyField(ClassRoomType, blank=True, null=True)
 
-    objects = CourseManager()
+    objects = QuerySetManager()
+
+    class QuerySet(models.query.QuerySet):
+        ''' queryseti bir miktar değiştirmek gerekti actives mevzuu için'''
+        def actives(self):
+            return self.filter(is_active=True)
+    
+        def as_dicts(self):
+            return [item.to_dict() for item in self._clone()]
+                
+        def as_hashables(self):
+            ds = self.as_dicts()
+            l = []
+            for course in ds:
+                f = frozenset((item[0],isinstance(item[1], list) and tuple(item[1]) or item[1]) \
+                    for item in course.items())
+                l.append(f)
+            return l
+
+
 
     def __unicode__(self):
         return u'%s' % self.name 

@@ -1,9 +1,13 @@
 # coding:utf-8
 
+import os 
+os.environ.update({'NO_PSYCO': ""})
 from logilab.constraint import * 
 from logilab.constraint.propagation import AbstractConstraint, ConsistencyFailure
 import random
-import cProfile as cp 
+import numpy as np
+import cjson
+
 
 
 class Course(object):
@@ -14,7 +18,7 @@ class Course(object):
     def __repr__(self):
         return u'<Course: %s>' % self.name
 
-variables = [Course('c%02d' % (i + 1) , hours) for i,hours in enumerate((1,3,2,4,2,3,4,3,2,3,4,5,6))]
+variables = [Course('c%02d' % (i + 1) , hours) for i,hours in enumerate((1,3,2,4,2))]#,3,4,3,2,3,4,5,6))]
 
 random.shuffle(variables)
 
@@ -44,7 +48,7 @@ for room in variables:
 class SameDaySameClassConstraint(AbstractConstraint):
     def __init__(self, variables):
         AbstractConstraint.__init__(self, variables)
-
+    @profile 
     def narrow(self, domains):
         maybe_entailed = 1
         var1 = self._variables[0]
@@ -65,20 +69,20 @@ class SameDaySameClassConstraint(AbstractConstraint):
 
             for val2 in values2:
                 
-                if val1 in keep1 and val2 in keep2 and maybe_entailed == 0:
-                    continue
+                if not (val1 in keep1 and val2 in keep2 and maybe_entailed == 0):
 
-                room2, day2, hour2 = val2
-                start2, end2 = hour2, hour2 + var2.hours
+                    room2, day2, hour2 = val2
+                    start2, end2 = hour2, hour2 + var2.hours
 
-                if room1 == room2 and day1 == day2 and \
-                     set(range(start1, end1)).intersection(set(range(start2, end2))):
-                        #print val1, val2, 'maybe entitled'
-                        maybe_entailed = 0
+                    if room1 == room2 and day1 == day2 and \
+                         set(range(start1, end1)).intersection(set(range(start2, end2))):
+                            #print val1, val2, 'maybe entitled'
+                            maybe_entailed = 0
 
-                else:
-                    keep1[val1] = 1
-                    keep2[val2] = 1
+                    else:
+                        keep1[val1] = 1
+                        keep2[val2] = 1
+                    
 
         try:
             dom1.removeValues([val for val in values1 if val not in keep1])
@@ -87,7 +91,6 @@ class SameDaySameClassConstraint(AbstractConstraint):
             raise ConsistencyFailure('Inconsistency while applying %s' % \
                                      repr(self))
         except Exception:
-            print self, kwargs
             raise 
         return maybe_entailed
             
@@ -106,4 +109,4 @@ s.distrib_cnt = 0
 s.max_depth = 0
 s.verbose = 1
 x = s._solve(r)
-cp.run("x.next()", 'hede.prof')
+x.next()
