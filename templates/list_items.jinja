@@ -1,0 +1,77 @@
+{% extends 'base.jinja' %}
+{% block content %}
+    {% include 'left.jinja' %}
+    <div id="grid" class="left grid_10">
+
+        {% if item == 'course'%}
+            <div class="header">
+                <div class="grid_3">Ders adı</div>
+                <div class="grid_1">Kod</div>
+                <div class="grid_1">Crn</div>
+                <div class="grid_1">Süre(s)</div>
+                <div class="grid_1">Kapasite</div>
+                <div class="grid_1">Zorunlu</div>
+                <div class="grid_1">Durum</div>
+            </div>
+            {% for course in items %}
+                <div class="grid_row {{ loop.index % 2 == 1 and 'white' or 'green'}}">
+                    <div class="grid_3"><a href="{{ url_for('editCourse', int(course.id))}}">{{ course.name }}</a></div>
+                    <div class="grid_1">{{ course.code }}</div>
+                    <div class="grid_1">{{ course.crn }}</div>
+                    <div class="grid_1">{{ course.duration }}</div>
+                    <div class="grid_1">{{ course.capacity }}</div>
+                    <div class="grid_1"><img src="/adminmedia/img/admin/icon-{{ course.mandatory and 'yes' or 'no'}}.gif"></div>
+                    <div class="grid_1"><img src="/adminmedia/img/admin/icon-{{ course.is_active and 'yes' or 'no'}}.gif"></div>
+                </div>
+            {% endfor %}
+            
+        {% elif item == 'classroom' %}
+            <div class="header">
+                <div class="grid_2">Derslik adı</div>
+                <div class="grid_2">Kapasite</div>
+                <div class="grid_2">Derslik tipi</div>
+                <div class="grid_2">Kullanılabilir</div>
+            </div>
+            {% for cls in items %}
+                <div class="grid_row {{ loop.index % 2 == 1 and 'white' or 'green'}}">
+                    <div class="grid_2"><a href="{{ url_for('editClassRoom', int(cls.id))}}">{{ cls.name }}</a></div>
+                    <div class="grid_2">{{ cls.capacity }}</div>
+                    <div class="grid_2">{{ cls.type }}</div>
+                    <div class="grid_2"><img src="/adminmedia/img/admin/icon-{{ cls.is_active and 'yes' or 'no'}}.gif"></div>
+                </div>
+            {% endfor %}
+        {% elif item == 'instructor' %}
+            <div class="header">
+                <div class="grid_3">Eğitmen adı</div>
+                <div class="grid_4">Tercih edilen dersler</div>
+                <div class="grid_2">Aktif</div>
+            </div>
+            {% for ins in items %}
+                <div class="grid_row {{ loop.index % 2 == 1 and 'white' or 'green'}}">
+                    <div class="grid_3"><a href="{{ url_for('editInstructor', int(ins.id))}}">{{ ins.name }}</a></div>
+                    <div class="grid_4">
+                        <ul>
+                        {% for course in ins.preferred_courses.all() %}
+                        <li><a href="{{ url_for('editCourse', int(course.id)) }}">{{ course.name }}</a></li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="grid_2"><img src="/adminmedia/img/admin/icon-{{ ins.is_active and 'yes' or 'no'}}.gif"></div>
+                </div>
+            {% endfor %}
+            
+        {% elif item == 'classroomtype'%}
+            <div class="header">
+                <div class="">Sınıf tipi</div>
+            </div>
+            {% for ins in items %}
+                <div class="grid_row {{ loop.index % 2 == 1 and 'white' or 'green'}}">
+                    <div class=""><a href="{{ url_for('editClassRoomType', int(ins.id))}}">{{ ins.name }}</a></div>
+                </div>
+            {% endfor %}
+            
+        {% endif %}
+
+    </div>
+
+{% endblock %}
