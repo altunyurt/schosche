@@ -3,6 +3,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.conf import settings
 from utils import render_to_response
 from datetime import datetime, timedelta
+from django.core.urlresolvers import reverse 
+
 max_age = 2592000 # 30 gün
 
 
@@ -25,7 +27,7 @@ def requires_anonymous(f):
 def requires_login(f):
     def inner(request, *args, **kwargs):
         if not request.user.is_authenticated():
-            response = HttpResponseRedirect('/login/')
+            response = HttpResponseRedirect(reverse('login'))
             response.set_cookie('next', request.path)
             return response
         return f(request, *args, **kwargs)
@@ -33,7 +35,7 @@ def requires_login(f):
 
 def under_construction(f):
     def inner(request, *args, **kwargs):
-        return render_to_response('duz/under_construction.jinja', locals())
+        return render_to_response('under_construction.jinja', locals())
     return inner
 
 

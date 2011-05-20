@@ -1,0 +1,17 @@
+{% extends 'base.jinja' %}
+
+{% block content %}
+
+    <div class="cell">
+        <form name="loginform" action="{{ url_for('login')}}" method="POST">
+            {% csrf_token %}
+            <ul>
+                {{ loginform.as_ul()}}
+                <li>
+                    <input type="submit" value="Giriş" />
+                </li>
+            </ul>
+        </form>
+    </div>
+
+{% endblock %}

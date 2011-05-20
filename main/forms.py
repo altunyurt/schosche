@@ -17,3 +17,7 @@ class InstructorForm(forms.ModelForm):
 class ClassRoomTypeForm(forms.ModelForm):
     class Meta:
         model = ClassRoomType
+
+class LoginForm(forms.Form):
+    user = forms.CharField(max_length=100, required=True, label=u"Kullanıcı adı")
+    password = forms.CharField(max_length=100, required=True, label=u"Şifre", widget=forms.PasswordInput())

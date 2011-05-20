@@ -1,16 +1,17 @@
 # coding:utf-8 
 
 from utils import render_to_response
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from main.forms import *
 from django.shortcuts import get_object_or_404
 from utils.constraints import *
 from django.contrib.auth import login as _login, logout as _logout, authenticate
 from main.decorators import * 
+from django.core.urlresolvers import reverse
 
 objects = {
     'course': Course,
-    'instructorr': Instructor,
+    'instructor': Instructor,
     'classroom': ClassRoom,
     'classroomtype': ClassRoomType
 }
@@ -23,8 +24,11 @@ oforms = {
 }
 
 
+@requires_login
 def index(request):
     ''' burası tüm listenin görüneceği yer '''
+
+    print request.user
 
     vtype = request.GET.get('view', 'course')
     sch = None
@@ -35,6 +39,7 @@ def index(request):
 
     return render_to_response('index.jinja', locals())
 
+@requires_login
 def runconstraints(request):
     domains = {}
     constraints = []
@@ -110,9 +115,12 @@ def runconstraints(request):
     return HttpResponse('OK')
 
 
+@requires_login
 def addObject(request, objtype):
     _form = oforms.get(objtype)
     form = _form()
+    op = u'add'
+
     if request.method == 'POST':
         form = _form(request.POST)
         if form.is_valid():
@@ -122,9 +130,11 @@ def addObject(request, objtype):
     return render_to_response('form.jinja', locals())
     
 
+@requires_login
 def editObject(request, objtype, objid):
     _obj = objects.get(objtype)
     _form = oforms.get(objtype)
+    op = u'edit'
 
     obj = get_object_or_404(_obj, id=objid)
     form = _form(instance=obj)
@@ -135,14 +145,31 @@ def editObject(request, objtype, objid):
             #return HttpResponse(cjson.encode(obj.to_dict()))
     return render_to_response('form.jinja', locals())
 
-
+@requires_anonymous
 def login(request):
+    loginform = LoginForm()
+    next = request.COOKIES.get('next', '/')
+
+    if request.method == 'POST':
+        loginform = LoginForm(request.POST)
+        if loginform.is_valid():
+            d = loginform.cleaned_data 
+            user = authenticate(username=d.get('user'), password=d.get('password'))
+
+            if user:
+                _login(request, user)
+                response = HttpResponseRedirect(next)
+                response.delete_cookie('next')
+                return response
+
     return render_to_response('login.jinja', locals())
 
+@requires_login
 def logout(request):
-    # çıkışta direk anasayfaya atıyoruz
-    return render_to_response('login.jinja', locals())
+    _logout(request)
+    return HttpResponseRedirect(reverse('login'))
 
+@requires_login
 def list_items(request, item):
     idict = {
         'course': Course,

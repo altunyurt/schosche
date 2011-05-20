@@ -3,6 +3,8 @@
 {% block content %}
     {% include 'left.jinja' %}
     <div id="grid" class="left grid_10">
+        {% set _name = {'course':'Ders', 'instructor':'Eğitmen', 'classroom':'Derslik', 'classroomtype':'Derslik tipi'}.get(objtype) %}
+        <h3>{{ _name }} {{ op == 'edit' and 'düzenle' or 'ekle'}}</h3>
         <form action="." method='POST' name="form">
             {% csrf_token %}
             <ul>
