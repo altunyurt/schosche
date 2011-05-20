@@ -3,15 +3,23 @@
         <ul>
             <li><a href="{{url_for('addCourse')}}">Ders ekle</a></li>
             <li><a href="{{url_for('addInstructor')}}">Eğitmen ekle</a></li>
-            <li><a href="{{url_for('addClassRoom')}}">Sınıf ekle</a></li>
-            <li><a href="{{url_for('addClassRoomType')}}">Sınıf tipi ekle</a></li>
+            <li><a href="{{url_for('addClassRoom')}}">Derslik ekle</a></li>
+            <li><a href="{{url_for('addClassRoomType')}}">Derslik tipi ekle</a></li>
         </ul>
         <div class="eline"></div>
 
-        <div id="menu" class="">
-            <h3>Gösterim</h3>
-            <div {%if vtype == "course"%}class="active"{% endif %}><a href="?view=course">Derse göre</a></div>
-            <div {%if vtype == "instructor"%}class="active"{% endif %}><a href="?view=instructor">Eğitmene göre</a></div>
-            <div {%if vtype == "room"%}class="active"{% endif %}><a href="?view=room">Sınıfa göre</a></div>
-        </div>
+        <h3>Gösterim</h3>
+        <ul>
+            <li {%if vtype == "course"%}class="active"{% endif %}><a href="/?view=course">Derse göre</a></li>
+            <li {%if vtype == "instructor"%}class="active"{% endif %}><a href="/?view=instructor">Eğitmene göre</a></li>
+            <li {%if vtype == "room"%}class="active"{% endif %}><a href="/?view=room">Dersliğe göre</a></li>
+        </ul>
+
+        <h3>Diğer</h3>
+        <ul>
+            <li><a href="{{url_for('courses')}}">Dersler</a></li>
+            <li><a href="{{url_for('instructors')}}">Eğitmenler</a></li>
+            <li><a href="{{url_for('classrooms')}}">Derslikler</a></li>
+            <li><a href="{{url_for('classroomtypes')}}">Derslik tipleri</a></li>
+        </ul>
     </div>

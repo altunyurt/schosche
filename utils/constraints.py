@@ -2,11 +2,10 @@
 
 from __future__ import with_statement
 import os 
-os.environ.update({'NO_PSYCO': ""})
+#os.environ.update({'NO_PSYCO': ""})
 
 from logilab.constraint import *
 from logilab.constraint.propagation import AbstractConstraint, ConsistencyFailure
-import os
 
 '''
     Genel kısıtlar. 
@@ -17,13 +16,13 @@ import os
 
 '''
 
-profile.enable()
+#profile.enable()
 
 class SameDaySameRoomConstraint(AbstractConstraint):
     def __init__(self, courses):
         AbstractConstraint.__init__(self, courses)
 
-    @profile 
+    #@profile 
     def narrow(self, domains):
         _course1 = self._variables[0]
         course1 = dict(_course1)
@@ -33,6 +32,11 @@ class SameDaySameRoomConstraint(AbstractConstraint):
         course2 = dict(_course2)
         dom2 = domains[_course2]
         values2 = dom2.getValues()
+
+        #values1 = nd.array(dom1.getValues())
+        #values2 = nd.array(dom2.getValues())
+
+
            
         keep1 = {}
         keep2 = {}
@@ -82,7 +86,7 @@ class MandatoryCourseClashConstraint(AbstractConstraint):
     def __init__(self, courses):
         AbstractConstraint.__init__(self, courses)
 
-    @profile 
+    #@profile 
     def narrow(self, domains):
         _course1 = self._variables[0]
         course1 = dict(_course1)
@@ -138,7 +142,7 @@ class TermConflictConstraint(AbstractConstraint):
     def __init__(self, courses):
         AbstractConstraint.__init__(self, courses)
     
-    @profile  
+    #@profile  
     def narrow(self, domains):
         _course1 = self._variables[0]
         course1 = dict(_course1)
@@ -192,7 +196,7 @@ class NoInstructorClashConstraint(AbstractConstraint):
     def __init__(self, courses):
         AbstractConstraint.__init__(self, courses)
 
-    @profile
+    #@profile
     def narrow(self, domains):
         _course1 = self._variables[0]
         course1 = dict(_course1)

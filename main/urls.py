@@ -18,6 +18,12 @@ urlpatterns = patterns('main.views',
     url('^edit/classroom/(?P<objid>\d+)/$', 'editObject', {'objtype':'classroom'}, name='editClassRoom'),
     url('^edit/classroomtype/(?P<objid>\d+)/$', 'editObject', {'objtype':'classroomtype'}, name='editClassRoomType'),
 
+    url('^courses/$', 'list_items',  {'item':'course'}, name="courses"),
+    url('^classroomtypes/$', 'list_items', {'item':'classroomtype'},  name="classroomtypes"),
+    url('^instructors/$', 'list_items', {'item':'instructor'},  name="instructors"),
+    url('^rooms/$', 'list_items', {'item':'classroom'},  name="classrooms"),
+
+
     url('^runconstraints/$','runconstraints', name='runconstraints'),
 
     url('^logout/$', 'logout', name="logout"),

@@ -90,9 +90,9 @@ def runconstraints(request):
                     c = TermConflictConstraint((c1, c2))
                     constraints.append(c)
 
-    #'''
-    #    aynı gün saat ve sınıfta iki ayrı ders olamaz
-    #'''
+    '''
+        aynı gün saat ve sınıfta iki ayrı ders olamaz
+    '''
 
     for c1 in Course.objects.actives():
         for c2 in courses:
@@ -106,7 +106,6 @@ def runconstraints(request):
     s.max_depth = 0
     s.verbose = 0
     x = s._solve(r)
-    print x.next()
 
     return HttpResponse('OK')
 
@@ -134,7 +133,6 @@ def editObject(request, objtype, objid):
         if form.is_valid():
             obj = form.save()
             #return HttpResponse(cjson.encode(obj.to_dict()))
-    #return HttpResponse('FAIL')
     return render_to_response('form.jinja', locals())
 
 
@@ -144,3 +142,14 @@ def login(request):
 def logout(request):
     # çıkışta direk anasayfaya atıyoruz
     return render_to_response('login.jinja', locals())
+
+def list_items(request, item):
+    idict = {
+        'course': Course,
+        'classroomtype': ClassRoomType,
+        'instructor': Instructor,
+        'classroom': ClassRoom
+    }
+
+    items = idict.get(item).objects.all()
+    return render_to_response('list_items.jinja', locals())

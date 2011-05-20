@@ -2,11 +2,20 @@
 
 {% block content %}
     {% include 'left.jinja' %}
-    <div id="grid" class="left">
+    <div id="grid" class="left grid_10">
         <form action="." method='POST' name="form">
             {% csrf_token %}
             <ul>
-                {{ form.as_ul()}}
+                {% for field in form %}
+                <li>
+                    {{ field.label_tag()}}
+                    {{ field }}
+                    {% if field.errors %}
+                    <span class="error">{{ field.errors.as_text() }}</span>
+                    {% endif %}
+                    
+                </li>
+                {% endfor %}
                 <li>
                     <input type="submit" value="Kaydet" />
                 </li>

@@ -54,7 +54,7 @@ class Day(MyModel):
 
 class ClassRoomType(MyModel):
     ''' Sınıf tipleri, amfi, videolu ıvır kıvır.'''
-    name = models.CharField(max_length=255, null=False, blank=False)
+    name = models.CharField(max_length=255, null=False, blank=False, verbose_name=u"Derslik tipi")
 
     def __unicode__(self):
         return u'%s' % self.name 
@@ -62,10 +62,10 @@ class ClassRoomType(MyModel):
 
 class ClassRoom(MyModel):
     ''' Derslerin yapılacağı sınıflar. Sınıfın türü ve kapasitesi önemli'''
-    name = models.CharField(max_length=10, null=False, blank=False)
-    capacity = models.PositiveSmallIntegerField(blank=False, null=False)
-    type = models.ForeignKey(ClassRoomType)
-    is_active = models.BooleanField(default=True)
+    name = models.CharField(max_length=10, null=False, blank=False, verbose_name=u"Derslik adı")
+    capacity = models.PositiveSmallIntegerField(blank=False, null=False, verbose_name=u"Öğrenci sayısı")
+    type = models.ForeignKey(ClassRoomType, verbose_name=u"Derslik tipi")
+    is_active = models.BooleanField(default=True, verbose_name=u"Kullanılabilir")
 
     def __unicode__(self):
         return u'%s' % self.name
@@ -78,24 +78,21 @@ class QuerySetManager(models.Manager):
         return getattr(self.get_query_set(), attr, *args)
 
 
-    
-
-
-
 class Course(MyModel):
-    name = models.CharField(max_length=255, null=False, blank=False, unique=True)
-    code = models.CharField(max_length=15,  null=True, blank=True, unique=True)
+    name = models.CharField(max_length=255, null=False, blank=False, unique=True, verbose_name=u"Ders adı")
+    code = models.CharField(max_length=15,  null=True, blank=True, unique=True, verbose_name=u"Ders kodu")
     crn = models.CharField(max_length=15,  null=True, blank=True, unique=True)
-    duration = models.PositiveSmallIntegerField(blank=False)
-    mandatory = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    capacity = models.PositiveSmallIntegerField(null=False, blank=False)
+    duration = models.PositiveSmallIntegerField(blank=False, verbose_name=u"Süre")
+    mandatory = models.BooleanField(default=False, verbose_name=u"Zorunlu ders")
+    is_active = models.BooleanField(default=True, verbose_name=u"Ders aktif")
+    capacity = models.PositiveSmallIntegerField(null=False, blank=False, verbose_name=u"Öğrenci sayısı")
     '''
         bu kısımda temel kısıtlar mevcut 
     ''' 
-    days = models.ManyToManyField(Day, blank=True, null=True)
-    terms = models.ManyToManyField(Term)
-    classroomtypes = models.ManyToManyField(ClassRoomType, blank=True, null=True)
+    days = models.ManyToManyField(Day, blank=True, null=True, verbose_name=u"Günler")
+    terms = models.ManyToManyField(Term, verbose_name=u"Dönemler")
+    classroomtypes = models.ManyToManyField(ClassRoomType, blank=True, null=True, 
+                                            verbose_name=u"Derslik tipleri")
 
     objects = QuerySetManager()
 
@@ -124,9 +121,9 @@ class Course(MyModel):
 
 class Instructor(MyModel):
     ''' Hocalar ve tercih ettikleri ders tipleri '''
-    name = models.CharField(max_length=255, blank=False, null=False)
-    preferred_courses = models.ManyToManyField('Course', related_name="instructors")
-    is_active = models.BooleanField(default=True)
+    name = models.CharField(max_length=255, blank=False, null=False, verbose_name=u"Eğitmen adı")
+    preferred_courses = models.ManyToManyField('Course', related_name="instructors", verbose_name=u"Tercih edilen dersler")
+    is_active = models.BooleanField(default=True, verbose_name=u"Eğitmen aktif")
 
     def __unicode__(self):
         return u'%s' % self.name 

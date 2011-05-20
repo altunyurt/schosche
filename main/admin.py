@@ -4,7 +4,7 @@ from django.contrib import admin
 from main.models import *
 
 class CourseAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'code', 'crn', 'duration', 'mandatory', 'is_active')
 
 class DayAdmin(admin.ModelAdmin):
     pass
