@@ -9,6 +9,13 @@ import cjson
 
 '''
 
+class QuerySetManager(models.Manager):
+    def get_query_set(self):
+        ''' modele özgü queryset kullanılıyor '''
+        return self.model.QuerySet(self.model)
+    def __getattr__(self, attr, *args):
+        return getattr(self.get_query_set(), attr, *args)
+
 class MyModel(models.Model):
 
     class Meta:
@@ -67,15 +74,14 @@ class ClassRoom(MyModel):
     type = models.ForeignKey(ClassRoomType, verbose_name=u"Derslik tipi")
     is_active = models.BooleanField(default=True, verbose_name=u"Kullanılabilir")
 
+    objects = QuerySetManager()
+
+    class QuerySet(models.query.QuerySet):
+        def actives(self):
+            return self.filter(is_active=True)
+
     def __unicode__(self):
         return u'%s' % self.name
-
-
-class QuerySetManager(models.Manager):
-    def get_query_set(self):
-        return self.model.QuerySet(self.model)
-    def __getattr__(self, attr, *args):
-        return getattr(self.get_query_set(), attr, *args)
 
 
 class Course(MyModel):
@@ -124,6 +130,12 @@ class Instructor(MyModel):
     name = models.CharField(max_length=255, blank=False, null=False, verbose_name=u"Eğitmen adı")
     preferred_courses = models.ManyToManyField('Course', related_name="instructors", verbose_name=u"Tercih edilen dersler")
     is_active = models.BooleanField(default=True, verbose_name=u"Eğitmen aktif")
+
+    objects = QuerySetManager()
+
+    class QuerySet(models.query.QuerySet):
+        def actives(self):
+            return self.filter(is_active=True)
 
     def __unicode__(self):
         return u'%s' % self.name 

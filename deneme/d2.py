@@ -29,7 +29,7 @@ def mfs(d):
 for course in courses:
     values = [(int(instructor.id), int(room.id), int(day.id), hour)
                 # bu dersi verebileceğini söyleyen hocalar
-                for instructor in course.instructors.filter(is_active=True)
+                for instructor in Instructor.objects.all()
                     # bu ders için kapasite ve classroomtype uyanlar 
                     for room in ClassRoom.objects.filter(is_active=True, type__in=course.classroomtypes.all(),
                                                    capacity__gte=course.capacity)

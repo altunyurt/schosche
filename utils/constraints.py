@@ -106,7 +106,6 @@ class MandatoryCourseClashConstraint(AbstractConstraint):
             start1, end1 = hour1, hour1 + course1["duration"]
 
             for val2 in values2:
-                print 'penis'
 
                 instructor2, room2, day2, hour2 = val2
                 if day1 != day2:

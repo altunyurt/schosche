@@ -9,6 +9,13 @@ import math
 import re
 import sys
 
+def mfs(d):
+    ''' make frozenset
+        dictionary nesnesinden bir fozenset oluşturmayı sağlıyor.
+    '''
+    items = d.items()
+    t = tuple((key,isinstance(val, list) and tuple(val) or val) for key, val in items)
+    return frozenset(t)
 
 def generate_random_password(max_length=5):
     return "".join([choice(lowercase+digits) for i in range(max_length)])
