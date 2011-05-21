@@ -2,6 +2,7 @@
 
 from datetime import datetime
 import re
+from main.models import Day, Instructor, ClassRoom
 
 __all__ = ["one", "timesince", 'myescape']
 
@@ -45,3 +46,14 @@ def colored_match(data, keyword, defidx=100):
 
     result = data[start:end].replace(keyword, '<span class="matched">%s</span>' % keyword)
     return (start != 0 and u'...' or u'') + result + (end != len(data) -1 and u'...' or u'')
+
+def getDay(data):
+    return Day.objects.get(id=int(data))
+
+def getInstructor(data):
+    return Instructor.objects.get(id=int(data))
+
+def getClassRoom(data):
+    return ClassRoom.objects.get(id=int(data))
+
+

@@ -32,7 +32,12 @@ global_exts.append('utils.jinja_extensions.CsrfExtension')
 
 env = DjangoEnvironment(autoescape=False, loader=FileSystemLoader(template_dirs, encoding="utf-8"), extensions=global_exts)
 env.filters.update({'myescape':jf.myescape,
-                    'colored_match':jf.colored_match})
+                    'colored_match':jf.colored_match,
+                    'getDay':jf.getDay,
+                    'getInstructor':jf.getInstructor,
+                    'getClassRoom': jf.getClassRoom
+                   })
+
 env.install_gettext_translations(translation)
 
 additional_context = {'settings':settings, 
@@ -41,6 +46,7 @@ additional_context = {'settings':settings,
                       'url_for': jurl,
                       'str': str,
                       'int': int,
+                      '_dict':dict,
                       'pagination': pagination
                      }
 

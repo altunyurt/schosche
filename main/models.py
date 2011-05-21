@@ -2,6 +2,8 @@
 from django.db import models
 from django.forms.models import model_to_dict
 import cjson 
+import cPickle as cp
+from cStringIO import StringIO
 
 '''
     modeller ve modeller içindeki basit kısıtlar domainleri oluşturmaya yarayacak.
@@ -16,6 +18,7 @@ class QuerySetManager(models.Manager):
     def __getattr__(self, attr, *args):
         return getattr(self.get_query_set(), attr, *args)
 
+
 class MyModel(models.Model):
 
     class Meta:
@@ -28,16 +31,16 @@ class MyModel(models.Model):
 
 
 class JSONField(models.TextField):
-    """DictField is a textfield that contains JSON-serialized dictionaries."""
+    '''DictField is a textfield that contains JSON-serialized dictionaries.'''
     __metaclass__ = models.SubfieldBase
     
     def to_python(self, value):
-        """Convert our string value to JSON after we load it from the DB"""
+        '''Convert our string value to JSON after we load it from the DB'''
         value = cjson.decode(value)
         return value
     
     def get_db_prep_save(self, value):
-        """Convert our JSON object to a string before we save"""
+        '''Convert our JSON object to a string before we save'''
         value = cjson.encode(value)
         return super(JSONField, self).get_db_prep_save(value)
 
@@ -140,6 +143,7 @@ class Instructor(MyModel):
     def __unicode__(self):
         return u'%s' % self.name 
 
+
 class Schedule(MyModel):
     name = models.CharField(max_length=255, blank=False, null=False, unique=True)
     data = JSONField(blank=False, null=False)
@@ -147,3 +151,12 @@ class Schedule(MyModel):
 
     def __unicode__(self):
         return u'%s' % self.name 
+
+    def get_unpickled(self):
+        flike = StringIO()
+        flike.write(self.data)
+        flike.seek(0)
+
+        return  cp.load(flike)
+
+

@@ -29,8 +29,6 @@ oforms = {
 def index(request):
     ''' burası tüm listenin görüneceği yer '''
 
-    print request.user
-
     vtype = request.GET.get('view', 'course')
     sch = None
     try:
@@ -126,7 +124,14 @@ def runconstraints(request):
     s.verbose = 0
     x = s._solve(r)
     solution = x.next()
-    print solution
+    
+    filelike = cStringIO.StringIO()
+    cPickle.dump(solution, filelike)
+    
+    filelike.seek(0)
+    data = cjson.encode(filelike.read())
+    schedule = Schedule(name="Schedule1", data=data, is_default=True)
+    schedule.save()
 
     return HttpResponse('OK')
 

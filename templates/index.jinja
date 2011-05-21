@@ -9,17 +9,18 @@
             <div class="header">
                 <div class="grid_4">Ders</div>
                 <div class="grid_3">Eğitmen</div>
-                <div class="grid_1">Saat</div>
+                <div class="grid_1">Sınıf</div>
                 <div class="grid_1">Gün</div>
-                <div class="">Sınıf</div>
+                <div class="">Saat</div>
             </div>
             {% if sch %}
-                {% for course, val in sch.data.items() %}
+                {% for course, val in sch.get_unpickled().items() %}
+                {% set c = _dict(course) %}
                 <div class="grid_row">
-                    <div class="grid_4">{{ course.name }}</div>
-                    <div class="grid_3">{{ val[0] }}</div>
-                    <div class="grid_1">{{ val[1] }}</div>
-                    <div class="grid_1">{{ val[2] }}</div>
+                    <div class="grid_4"><a href="{{ url_for('editCourse', int(c.get('id')))}}">{{ c.get('name') }}</a></div>
+                    <div class="grid_3">{{ val[0]|getInstructor }}</div>
+                    <div class="grid_1">{{ val[1]|getClassRoom }}</div>
+                    <div class="grid_1">{{ val[2]|getDay}}</div>
                     <div class="">{{ val[3] }}</div>
                 </div>
                 {% endfor %}
