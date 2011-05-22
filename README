@@ -1,0 +1,16 @@
+schosche - School Scheduler 
+------------------------------
+
+schosche is a timetabling application with a lousy name based on logilab-constraint Constraint
+Satisfaction Problem solver library and Django framework.
+
+It provides a simple demonstration of a web based  staff & resource scheduling aplication 
+with a very basic user interface. 
+
+Timetabling is one of the np-complete problems and this application is not optimized to the max 
+due to being a demonstration, which means it might take long enough to see your toddler grow up 
+and go to college before the application stops running and returns a result. 
+
+It may also be a good starting point if you know your timetable's constraints well.
+
+
