@@ -27,7 +27,7 @@ oforms = {
 
 @requires_login
 def index(request):
-    ''' burası tüm listenin görüneceği yer '''
+    ''' main view where the default solution is displayed as a timetable'''
 
     vtype = request.GET.get('view', 'course')
     sch = None
@@ -41,19 +41,27 @@ def index(request):
 
 @requires_login
 def runconstraints(request):
+    '''
+        Constraint application is called by web user directly.
+    '''
     domains = {}
     constraints = []
 
-    ''' her ders için zaten veri girişind uygulanan kısıtlara göre domain oluştur'''
     courses = Course.objects.actives()
 
-    # bölgeleri ders, hoca ve sınıf kısıtlarına göre dolduruyoruz.
     fcourses = []
     fscourses = []
 
+
+    '''
+        domains are created by chosing the possible values visely at the beginning. 
+        Reason here is to reduce the runtime, for the constraint solver will be looping 
+        over the combinations of variables and values, which is the real time taking process.
+        Reducing the possible values will also result in reducingthe runtime and memory allocated.
+    
+    '''
     for course in courses:
         values = [(int(instructor.id), int(room.id), int(day.id), hour)
-                    # bu dersi verebileceğini söyleyen hocalar
                     for instructor in course.instructors.actives()
                         # bu ders için kapasite ve classroomtype uyanlar 
                         for room in ClassRoom.objects.actives().filter(type__in=course.classroomtypes.all(),
@@ -67,24 +75,24 @@ def runconstraints(request):
         fcourses.append(d)
 
    
-    ''' eğitmen çakışması da olmasın '''
     for c1 in fcourses:
         for c2 in fcourses:
             if c1 != c2:
+                ''' we don't want to end up with results where an instructor 
+                has two or more courses at the same time '''
                 c = NoInstructorClashConstraint((mfs(c1), mfs(c2)))
                 constraints.append(c)
 
                 '''
-                    aynı gün saat ve sınıfta iki ayrı ders olamaz
+                    No classrooms can have two or more courses registered at the same day, 
+                    same hours
                 '''
 
                 c = SameDaySameRoomConstraint((mfs(c1), mfs(c2)))
                 constraints.append(c)
 
-
-    # constraint uygulama kısımları buradan itibaren başlıyor
     '''
-        aynı döneme ait zorunlu dersler çakışamaz
+        Mandatory courses of the each term should not be on the same day and same hours
     '''
     for i in range(1,9):
         for c1 in fcourses:
@@ -100,7 +108,8 @@ def runconstraints(request):
                     constraints.append(c)
 
     '''
-        tek ve çift dönemlere ait zorunlu dersler kendi aralarında çakışamaz
+        mandator courses of the terms [1,3,5,7] and [2,4,6,8] should not be on the same day, 
+        same hours
     '''
         
     for termgroup in ([1,3,5,7], [2,4,6,8]):
@@ -117,19 +126,30 @@ def runconstraints(request):
                     constraints.append(c)
 
 
+
+    ''' Repository is the structure that stores the domains, variables and constraints, 
+    propagates the domain changes to constraints and manages the constraint evaluation queue''' 
     r = Repository(fscourses, domains, constraints)
+    ''' create a solver'''
     s = Solver()
+
     s.distrib_cnt = 0
     s.max_depth = 0
     s.verbose = 0
+    ''' generate a solutution pointer for CSP'''
     x = s._solve(r)
+    ''' get next solution from the solution space. this is the long running process'''
     solution = x.next()
     
+    ''' when solutio found, we want to store it as a database document. for the solution is in 
+    python dictionary format, we need to convert it into string data'''
     filelike = cStringIO.StringIO()
     cPickle.dump(solution, filelike)
     
     filelike.seek(0)
     data = cjson.encode(filelike.read())
+
+    ''' saving the solution into database as string'''
     schedule = Schedule(name="Schedule1", data=data, is_default=True)
     schedule.save()
 
@@ -138,6 +158,7 @@ def runconstraints(request):
 
 @requires_login
 def addObject(request, objtype):
+    ''' general purpose data entry method.'''
     _form = oforms.get(objtype)
     form = _form()
     op = u'add'
@@ -153,6 +174,7 @@ def addObject(request, objtype):
 
 @requires_login
 def editObject(request, objtype, objid):
+    ''' general purpose data object editing method. '''
     _obj = objects.get(objtype)
     _form = oforms.get(objtype)
     op = u'edit'
@@ -163,11 +185,11 @@ def editObject(request, objtype, objid):
         form = _form(request.POST, instance=obj)
         if form.is_valid():
             obj = form.save()
-            #return HttpResponse(cjson.encode(obj.to_dict()))
     return render_to_response('form.jinja', locals())
 
 @requires_anonymous
 def login(request):
+    ''' Authentication page. For anonymus users, this is the entry point to application. '''
     loginform = LoginForm()
     next = request.COOKIES.get('next', '/')
 
@@ -187,11 +209,14 @@ def login(request):
 
 @requires_login
 def logout(request):
+    ''' sign user out'''
     _logout(request)
     return HttpResponseRedirect(reverse('login'))
 
 @requires_login
 def list_items(request, item):
+    ''' General purpose listing page. Database records such as course, clasrooms, instructors 
+    are listed via this method. User can view or edit the relevant objects by chosing them from this page.'''
     idict = {
         'course': Course,
         'classroomtype': ClassRoomType,

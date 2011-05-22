@@ -7,22 +7,13 @@ import os
 from logilab.constraint import *
 from logilab.constraint.propagation import AbstractConstraint, ConsistencyFailure
 
-'''
-    Genel kısıtlar. 
-     - Dersler çakışan saatlerde aynı sınıfta yer alamaz
-     - Aynı hoca çakışan saatlerde derslere giremez
-     - 1,3,5,7 ve 2,4,6,8 dönem zorunlu dersleri aynı saatlere gelemez
-
-
-'''
-
-#profile.enable()
 
 class SameDaySameRoomConstraint(AbstractConstraint):
+    ''' A class can not have two or more courses registered on the same day same hours'''
     def __init__(self, courses):
         AbstractConstraint.__init__(self, courses)
 
-    #@profile 
+
     def narrow(self, domains):
         _course1 = self._variables[0]
         course1 = dict(_course1)
@@ -33,14 +24,12 @@ class SameDaySameRoomConstraint(AbstractConstraint):
         dom2 = domains[_course2]
         values2 = dom2.getValues()
 
-        #values1 = nd.array(dom1.getValues())
-        #values2 = nd.array(dom2.getValues())
-
-
            
         keep1 = {}
         keep2 = {}
         maybe_entailed = 1
+        ''' main loop for each variable, the domain values are compared. values are kept in or removed
+        from the domains according to the rules of the constraint'''
         for val1 in values1:
             instructor1, room1, day1, hour1 = val1
             start1, end1 = hour1, hour1 + course1["duration"]
@@ -64,6 +53,8 @@ class SameDaySameRoomConstraint(AbstractConstraint):
                         keep2[val2] = 1
 
         try:
+            ''' non matching values are removed from the domains, leaving a reduced domain for further
+            operations'''
             dom1.removeValues(set(values1).difference(keep1.keys()))
             dom2.removeValues(set(values2).difference(keep2.keys()))
         except ConsistencyFailure:
@@ -76,17 +67,12 @@ class SameDaySameRoomConstraint(AbstractConstraint):
 
 class MandatoryCourseClashConstraint(AbstractConstraint):
     '''
-        Aynı dönemin zorunlu dersleri aynı saatlere gelemez. Aslında 
-        bu kısıt sadece saat ve gün çakışmasını kontrol ediyor. 
-        Sadece değişkenleri aldığımız kümede seçimi dönemlere göre yapıyoruz.
-        Yani 1,3,5,7 ve 2,4,6,8 dönemlerinden zorunlu dersleri alıp bunlara 
-        birer kısıt koyuyoruz.
-    
+        Mandatory courses of given term must not clash
     '''
     def __init__(self, courses):
         AbstractConstraint.__init__(self, courses)
 
-    #@profile 
+
     def narrow(self, domains):
         _course1 = self._variables[0]
         course1 = dict(_course1)
@@ -137,11 +123,11 @@ class MandatoryCourseClashConstraint(AbstractConstraint):
 
 
 class TermConflictConstraint(AbstractConstraint):
-    ''' aynı dönemler içinde aynı gün ve saatte ders olamaz '''
+    ''' mandatory courses of the given termgroups must not clash'''
     def __init__(self, courses):
         AbstractConstraint.__init__(self, courses)
     
-    #@profile  
+
     def narrow(self, domains):
         _course1 = self._variables[0]
         course1 = dict(_course1)
@@ -191,7 +177,7 @@ class TermConflictConstraint(AbstractConstraint):
 
 
 class NoInstructorClashConstraint(AbstractConstraint):
-    ''' bir eğitmen aynı anda bir yerde bulunabilir. '''
+    ''' An Instructor can not be at two courses at one time'''
     def __init__(self, courses):
         AbstractConstraint.__init__(self, courses)
 

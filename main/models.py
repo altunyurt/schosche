@@ -5,15 +5,9 @@ import cjson
 import cPickle as cp
 from cStringIO import StringIO
 
-'''
-    modeller ve modeller içindeki basit kısıtlar domainleri oluşturmaya yarayacak.
-    domainler oluştuktan sonra da genel kısıtlar söz konusu olacak
-
-'''
 
 class QuerySetManager(models.Manager):
     def get_query_set(self):
-        ''' modele özgü queryset kullanılıyor '''
         return self.model.QuerySet(self.model)
     def __getattr__(self, attr, *args):
         return getattr(self.get_query_set(), attr, *args)
@@ -46,8 +40,6 @@ class JSONField(models.TextField):
 
 
 class Term(MyModel):
-    ''' Dönemler, yaz dönemi falan da eklenebilir. Tam olarak oturmadı kafamda dönem
-    ve ders ilişkisi. Mesela döneminin dışında açılan derslerde neyapıyoruz?'''
     name = models.CharField(max_length=100, blank=False, null=False)
     
     def __unicode__(self):
@@ -55,7 +47,7 @@ class Term(MyModel):
 
 
 class Day(MyModel):
-    ''' Hafta günleri, belki ilerde cumartesi pazar falan da katılabilir.'''
+    ''' Week days '''
     name = models.CharField(max_length=10, blank=False, unique=True)
 
     def __unicode__(self):
@@ -63,7 +55,8 @@ class Day(MyModel):
 
 
 class ClassRoomType(MyModel):
-    ''' Sınıf tipleri, amfi, videolu ıvır kıvır.'''
+    ''' Types of the clasrooms. Might be used to better select the domains if for example a course 
+    requires a classand another needs a laboratory'''
     name = models.CharField(max_length=255, null=False, blank=False, verbose_name=u"Derslik tipi")
 
     def __unicode__(self):
@@ -71,7 +64,8 @@ class ClassRoomType(MyModel):
 
 
 class ClassRoom(MyModel):
-    ''' Derslerin yapılacağı sınıflar. Sınıfın türü ve kapasitesi önemli'''
+    ''' ClassRoom object. Courses are directly related to clasrooms via course student limits and
+    classroomtypes.'''
     name = models.CharField(max_length=10, null=False, blank=False, verbose_name=u"Derslik adı")
     capacity = models.PositiveSmallIntegerField(blank=False, null=False, verbose_name=u"Öğrenci sayısı")
     type = models.ForeignKey(ClassRoomType, verbose_name=u"Derslik tipi")
@@ -81,6 +75,7 @@ class ClassRoom(MyModel):
 
     class QuerySet(models.query.QuerySet):
         def actives(self):
+            ''' return usable classrooms'''
             return self.filter(is_active=True)
 
     def __unicode__(self):
@@ -88,6 +83,7 @@ class ClassRoom(MyModel):
 
 
 class Course(MyModel):
+    ''' course data object. '''
     name = models.CharField(max_length=255, null=False, blank=False, unique=True, verbose_name=u"Ders adı")
     code = models.CharField(max_length=15,  null=True, blank=True, unique=True, verbose_name=u"Ders kodu")
     crn = models.CharField(max_length=15,  null=True, blank=True, unique=True)
@@ -96,7 +92,8 @@ class Course(MyModel):
     is_active = models.BooleanField(default=True, verbose_name=u"Ders aktif")
     capacity = models.PositiveSmallIntegerField(null=False, blank=False, verbose_name=u"Öğrenci sayısı")
     '''
-        bu kısımda temel kısıtlar mevcut 
+        basic constraints. these are not used in constraint satisfaction problem directly, but used in 
+        filling up the value domains for the variables(courses), which results in lesser runtime 
     ''' 
     days = models.ManyToManyField(Day, blank=True, null=True, verbose_name=u"Günler")
     terms = models.ManyToManyField(Term, verbose_name=u"Dönemler")
@@ -129,7 +126,9 @@ class Course(MyModel):
 
 
 class Instructor(MyModel):
-    ''' Hocalar ve tercih ettikleri ders tipleri '''
+    ''' Instructor data object. Here we can chose if instructor prefers several different courses, which helps 
+    returning better solutions by not making unrelated matches between courses and instructors of different
+    areas'''
     name = models.CharField(max_length=255, blank=False, null=False, verbose_name=u"Eğitmen adı")
     preferred_courses = models.ManyToManyField('Course', related_name="instructors", verbose_name=u"Tercih edilen dersler")
     is_active = models.BooleanField(default=True, verbose_name=u"Eğitmen aktif")
@@ -145,6 +144,7 @@ class Instructor(MyModel):
 
 
 class Schedule(MyModel):
+    ''' timetable data object. there may be several records but only the default one be displayed'''
     name = models.CharField(max_length=255, blank=False, null=False, unique=True)
     data = JSONField(blank=False, null=False)
     is_default = models.BooleanField(default=False)
@@ -153,6 +153,7 @@ class Schedule(MyModel):
         return u'%s' % self.name 
 
     def get_unpickled(self):
+        ''' returns the converted object data upon fetching from database '''
         flike = StringIO()
         flike.write(self.data)
         flike.seek(0)
